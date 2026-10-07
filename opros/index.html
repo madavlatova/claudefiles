@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Опрос семинара</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: одна страница, два режима. Анкета студента: узкая колонка с крупными кнопками.
+   Экран ведущего: сетка карточек с живыми диаграммами, читаемыми с проектора. */
+:root{
+  --bg:#F4F6FB; --surface:#FFFFFF; --fg:#0F2C68; --muted:#5A6A8C; --line:#D6DDEB;
+  --accent:#1F4BA0; --on-accent:#FFFFFF; --soft:#E8EEF9;
+  --c1:#1F4BA0; --c2:#00945C; --c3:#D9581A; --c4:#7F4FBB; --c5:#B07B00;
+  --ok:#00945C; --warn:#D9581A;
+  --font:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0A1324; --surface:#12203A; --fg:#E7EDFA; --muted:#9BAAC9; --line:#26375C;
+  --accent:#7BA2FF; --on-accent:#0A1324; --soft:#1A2B4B;
+  --c1:#7BA2FF; --c2:#35CE96; --c3:#FF9A62; --c4:#B792FF; --c5:#E8B84A;
+  --ok:#35CE96; --warn:#FF9A62; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A1324; --surface:#12203A; --fg:#E7EDFA; --muted:#9BAAC9; --line:#26375C;
+  --accent:#7BA2FF; --on-accent:#0A1324; --soft:#1A2B4B;
+  --c1:#7BA2FF; --c2:#35CE96; --c3:#FF9A62; --c4:#B792FF; --c5:#E8B84A;
+  --ok:#35CE96; --warn:#FF9A62; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:16px;line-height:1.45;
+  padding-inline:16px;padding-block:20px 48px}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1180px;margin-inline:auto}
+.narrow{max-width:640px;margin-inline:auto}
+h1{font-size:clamp(1.4rem,3vw,2rem);font-weight:700;margin:0;text-wrap:balance}
+h2{font-size:1.15rem;font-weight:600;margin:0;text-wrap:balance}
+.muted{color:var(--muted)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 16px;font-weight:500;min-height:44px}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent);font-weight:600}
+.btn.on{background:var(--soft);border-color:var(--accent)}
+.btn.danger{color:var(--warn);border-color:var(--warn)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+
+/* participant */
+.head{display:flex;flex-direction:column;gap:6px;margin-bottom:20px}
+.q{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px}
+.q h2{margin-bottom:4px}
+.q .hint{color:var(--muted);font-size:.9rem;margin-bottom:12px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{border:1.5px solid var(--line);background:var(--bg);border-radius:999px;padding:10px 16px;min-height:44px;text-align:left}
+.opt[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent);font-weight:600}
+.scale{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.scale .opt{text-align:center;border-radius:12px;font-size:1.2rem;font-weight:600}
+.scale-lab{display:flex;justify-content:space-between;color:var(--muted);font-size:.85rem;margin-top:6px;gap:12px}
+textarea.txt{width:100%;min-height:84px;border:1.5px solid var(--line);border-radius:12px;padding:12px;background:var(--bg);resize:vertical}
+.notice{border:1px solid var(--line);background:var(--soft);border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:.95rem}
+.codebox{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem;word-break:break-all;min-height:64px;resize:vertical}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+/* host */
+.bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px}
+.count{display:flex;align-items:baseline;gap:10px}
+.count b{font-size:clamp(2.4rem,6vw,4rem);line-height:1;font-variant-numeric:tabular-nums;color:var(--accent)}
+.state{display:inline-flex;align-items:center;gap:8px;font-weight:600}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--ok)}
+.dot.off{background:var(--warn)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;min-width:0}
+.card h2{font-size:clamp(1.05rem,1.8vw,1.35rem);margin-bottom:14px}
+.one .card{padding:clamp(18px,3vw,36px)}
+.one .card h2{font-size:clamp(1.3rem,3vw,2.1rem)}
+.one .brow{font-size:clamp(1rem,2vw,1.5rem)}
+.brow{display:grid;grid-template-columns:minmax(110px,32%) 1fr 4.2em;gap:10px;align-items:center;margin-block:9px}
+.brow .lab{overflow-wrap:anywhere}
+.track{background:var(--soft);border-radius:8px;height:1.5em;overflow:hidden}
+.fill{height:100%;border-radius:8px;transition:width .5s ease;min-width:2px}
+.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.cols{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;align-items:end;height:220px}
+.col{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:6px}
+.col .pillar{width:100%;border-radius:8px 8px 0 0;background:var(--accent);transition:height .5s ease;min-height:2px}
+.col .n{font-variant-numeric:tabular-nums;font-weight:600}
+.avg{margin-top:12px;color:var(--muted)}
+.avg b{color:var(--fg);font-size:1.4em}
+.cloud{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;justify-content:center;padding:8px 0;min-height:120px}
+.cloud span{font-weight:600;line-height:1.1}
+.say{display:flex;flex-direction:column;gap:6px;margin-top:12px;max-height:180px;overflow:auto}
+.say div{background:var(--soft);border-radius:8px;padding:6px 10px;font-size:.95rem;overflow-wrap:anywhere}
+.empty{color:var(--muted);padding:18px 0}
+.nav{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px}
+details.set{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:18px}
+details.set summary{cursor:pointer;font-weight:600}
+.checks{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:6px 18px;margin:12px 0}
+.checks label{display:flex;gap:8px;align-items:flex-start}
+.checks input{margin-top:5px;width:18px;height:18px;flex:none}
+.sec{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.sec h3{margin:0 0 8px;font-size:1rem}
+.sec textarea{width:100%;min-height:90px;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg)}
+@media (max-width:560px){.brow{grid-template-columns:1fr 3.6em}.brow .track{grid-column:1/-1;order:3}}
+@media (prefers-reduced-motion:reduce){.fill,.pillar{transition:none}}
+.oth{width:100%;margin-top:10px;border:1.5px solid var(--line);border-radius:12px;padding:12px;background:var(--bg);min-height:44px}
+</style>
+</head><body><div id="app"></div>
+<script src="config.js"></script>
+<script>
+/* ---------- вопросы ---------- */
+const THEMES=["Темы курса","Инструменты (Excel, статистика)","Командная работа","Формат заданий","Оценивание"];
+const Q=[
+ {id:"q1",type:"multi",t:"Что из пройденного на майноре осталось полезным?",hint:"Можно выбрать несколько",opts:["Лекции","Семинары","Работа в Miro","Задания с данными","Проекты"]},
+ {id:"q2",type:"single",t:"Сколько часов в неделю вы тратите на майнор?",opts:["до 2 часов","3–4 часа","5–6 часов","7 часов и больше"]},
+ {id:"q3",type:"single",t:"Когда вы обычно делаете задания?",opts:["В день семинара","За 1–2 дня до дедлайна","В последний вечер перед дедлайном","Равномерно в течение недели"]},
+ {id:"q4",type:"multi",max:2,t:"Что на майноре даётся легче всего?",hint:"Выберите до двух",opts:THEMES},
+ {id:"q5",type:"multi",max:2,t:"Что на майноре даётся сложнее всего?",hint:"Выберите до двух",opts:THEMES},
+ {id:"q6",type:"scale",t:"Насколько комфортно майнор сочетается с вашей основной программой?",lo:"очень тяжело",hi:"без проблем"},
+ {id:"q7",type:"multi",t:"Что помогает вам не терять связь с курсом?",hint:"Можно выбрать несколько",opts:["Напоминания","Обратная связь преподавателя","Друзья в группе","LMS и чат","Дедлайны","Интерес к теме"]},
+ {id:"q8",type:"multi",t:"Что отвлекает или заставляет пропускать?",hint:"Можно выбрать несколько",opts:["Нагрузка основной программы","Расписание","Непонятные задания","Командная работа","Нет обратной связи","Усталость"]},
+ {id:"q9",type:"multi",t:"Какие данные о своей учёбе на майноре вы готовы дать?",hint:"Анонимно, в обезличенном виде",opts:["Успеваемость","Время на задания","Посещаемость","Мнение о занятиях","Ничего не готов(а) давать"]},
+ {id:"q10",type:"single",t:"Как часто вы используете ИИ в учёбе?",opts:["Почти не использую","Иногда","Часто","Почти в каждом задании"]},
+ {id:"q11",type:"multi",t:"Для чего вы используете ИИ в учёбе?",hint:"Можно выбрать несколько",opts:["Идеи","Поиск литературы","Проверка своих идей","Черновики текста","Объяснение непонятного","Не использую"]},
+ {id:"q12",type:"text",t:"Одним-тремя словами: какой для вас этот майнор?",hint:"Например: «практичный», «нагрузка»"}
+];
+const DEFAULT_ACTIVE=["q2","q5","q6","q8","q12"];
+const COLORS=["var(--c1)","var(--c2)","var(--c3)","var(--c4)","var(--c5)"];
+
+
+const OTHER="Другое";
+const optsOf=q=>[...q.opts,OTHER];
+const CFG=window.POLL_CONFIG||{};
+const DEMO=!CFG.databaseURL;                 // без настроек работает локально, для проверки в двух вкладках
+const IS_HOST_URL=location.hash==="#host";
+let token=null, isHost=false, hostMode="step", clearAsk=false;
+let poll=null;                               // null = опрос ещё не запущен
+let responses=[], respSig="", pollSig="";
+let draft={o:{}}, submitted=null, saveErr="", savedAt=0, dbOk=true;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+const toArr=v=>Array.isArray(v)?v.filter(x=>x!=null):Object.values(v||{});
+const activeQs=()=>Q.filter(q=>poll&&toArr(poll.active).includes(q.id));
+const curQ=()=>{const qs=activeQs();return qs.find(q=>q.id===poll.cur)||qs[0]};
+function newRid(){return Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-4)}
+let rid=lsGet("poll-rid")||newRid(); lsSet("poll-rid",rid);
+try{const d=JSON.parse(lsGet("poll-draft")||"null");if(d&&typeof d==="object"){draft=d;draft.o=draft.o||{}}}catch(e){}
+try{const sb=lsGet("poll-sub");if(sb)submitted=JSON.parse(sb)}catch(e){}
+
+/* ---------- база: Firebase Realtime Database (REST) или локальная демо-база ---------- */
+function demoTree(){try{return JSON.parse(lsGet("demo-db")||"{}")}catch(e){return {}}}
+function demoReq(method,path,body){
+  const parts=path.split("/").filter(Boolean), t=demoTree();
+  if(method==="GET"){let n=t;for(const p of parts){if(n==null)break;n=n[p]}return n===undefined?null:n}
+  if(!parts.length){if(method==="DELETE")lsSet("demo-db","{}");return null}
+  let n=t;for(let i=0;i<parts.length-1;i++){n[parts[i]]=n[parts[i]]||{};n=n[parts[i]]}
+  const last=parts[parts.length-1];
+  if(method==="DELETE")delete n[last]; else n[last]=body;
+  lsSet("demo-db",JSON.stringify(t)); return null;
+}
+async function dbReq(method,path,body){
+  if(DEMO)return demoReq(method,path,body);
+  const url=CFG.databaseURL.replace(/\/$/,"")+"/"+path+".json"+(token?"?auth="+encodeURIComponent(token):"");
+  const r=await fetch(url,{method,body:body===undefined?undefined:JSON.stringify(body),cache:"no-store"});
+  if(!r.ok)throw new Error("db "+r.status);
+  return r.json();
+}
+async function hostLogin(email,pw){
+  const url=(CFG.authURL||"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword")+"?key="+encodeURIComponent(CFG.apiKey||"");
+  const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password:pw,returnSecureToken:true})});
+  const j=await r.json(); if(!r.ok)throw new Error((j.error&&j.error.message)||"auth");
+  token=j.idToken;
+  clearInterval(window._relogin); window._relogin=setInterval(()=>hostLogin(email,pw).catch(()=>{}),45*60*1000);
+}
+
+/* ---------- код общей логики ---------- */
+function answers(){
+  const a={};const o={};
+  activeQs().forEach(q=>{
+    const v=draft[q.id]; if(v===undefined||v===""||(Array.isArray(v)&&!v.length))return;
+    a[q.id]=v;
+    if(q.type!=="scale"&&q.type!=="text"){
+      const hasOther=Array.isArray(v)?v.includes(q.opts.length):v===q.opts.length;
+      const t=(draft.o[q.id]||"").trim(); if(hasOther&&t)o[q.id]=t;
+    }
+  });
+  if(Object.keys(o).length)a.o=o;
+  return a;
+}
+function normResp(x){ // Firebase превращает массивы в объекты, если они разреженные
+  const a={};Object.keys(x.a||{}).forEach(k=>{const v=x.a[k]; a[k]=(k==="o")?v:(Q.find(q=>q.id===k)&&Q.find(q=>q.id===k).type==="multi"?toArr(v):v)});
+  return {rid:x.rid,a,ts:x.ts};
+}
+/* ---------- агрегаты ---------- */
+function agg(q,rs){
+  const vals=rs.map(r=>r.a[q.id]).filter(v=>v!==undefined&&v!==null&&v!==""&&!(Array.isArray(v)&&!v.length));
+  const n=vals.length;
+  if(q.type==="single"||q.type==="multi"){
+    const c=optsOf(q).map(()=>0);
+    vals.forEach(v=>(Array.isArray(v)?v:[v]).forEach(i=>{if(c[i]!==undefined)c[i]++}));
+    const others=rs.map(r=>r.a.o&&r.a.o[q.id]).filter(Boolean).map(String);
+    return {n,c,others};
+  }
+  if(q.type==="scale"){
+    const c=[0,0,0,0,0];vals.forEach(v=>{if(v>=1&&v<=5)c[v-1]++});
+    return {n,c,avg:n?vals.reduce((a,b)=>a+b,0)/n:0};
+  }
+  return {n,list:vals.map(String)};
+}
+const STOP=new Set(["и","в","на","не","что","как","это","для","но","или","по","мне","очень","чтобы","про","так","все","всё","его","она","они"]);
+function words(list){
+  const m=new Map();
+  list.forEach(s=>s.toLowerCase().replace(/[^\p{L}\p{N}\s-]/gu," ").split(/\s+/).forEach(w=>{
+    if(w.length<3||STOP.has(w))return; m.set(w,(m.get(w)||0)+1)}));
+  return [...m.entries()].sort((a,b)=>b[1]-a[1]).slice(0,40);
+}
+
+
+/* ---------- анкета студента ---------- */
+function qHTML(q,label){
+  let h=`<div class="q" data-q="${q.id}"><h2>${label}${esc(q.t)}</h2><div class="hint">${q.hint?esc(q.hint):""}</div>`;
+  if(q.type==="single"||q.type==="multi"){
+    const v=draft[q.id];
+    h+=`<div class="opts">`+optsOf(q).map((o,i)=>{
+      const on=Array.isArray(v)?v.includes(i):v===i;
+      return `<button class="opt" data-q="${q.id}" data-i="${i}" aria-pressed="${on}">${esc(o)}</button>`}).join("")+`</div>`;
+    const otherOn=Array.isArray(v)?v.includes(q.opts.length):v===q.opts.length;
+    if(otherOn)h+=`<input class="oth" id="o_${q.id}" maxlength="80" placeholder="Напишите свой вариант" value="${esc(draft.o[q.id]||"")}">`;
+  }else if(q.type==="scale"){
+    h+=`<div class="scale">`+[1,2,3,4,5].map(i=>`<button class="opt" data-q="${q.id}" data-i="${i}" aria-pressed="${draft[q.id]===i}">${i}</button>`).join("")+
+       `</div><div class="scale-lab"><span>1 — ${esc(q.lo)}</span><span>5 — ${esc(q.hi)}</span></div>`;
+  }else{
+    h+=`<textarea class="txt" id="t_${q.id}" maxlength="120" placeholder="Ваш ответ">${esc(draft[q.id]||"")}</textarea>`;
+  }
+  return h+`</div>`;
+}
+
+function renderForm(){
+  const qs=activeQs();
+  let h=`<div class="narrow"><div class="head"><h1>Опрос семинара</h1><div class="muted">Майнор «Управление, основанное на данных». Ответы анонимные, имя не нужно.</div></div>`;
+  if(isHost)h=`<div class="narrow row" style="margin-bottom:14px"><button class="btn" id="toHost">← Экран ведущего</button><span class="muted">Так анкету видят студенты (ваши тестовые ответы можно очистить в настройках)</span></div>`+h;
+  if(!poll)return h+`<div class="notice">Опрос ещё не запущен. Дождитесь сигнала преподавателя.</div></div>`;
+  if(!poll.open&&!isHost)return h+`<div class="notice">Приём ответов сейчас закрыт. Дождитесь, когда преподаватель его откроет.</div></div>`;
+  if(!qs.length)return h+`<div class="notice">Преподаватель пока не выбрал вопросы.</div></div>`;
+  if(poll.mode==="step"){
+    const q=curQ(), n=qs.indexOf(q)+1;
+    h+=`<div class="muted" style="margin-bottom:8px">Вопрос ${n} из ${qs.length}</div>`+qHTML(q,"")+
+       `<div class="row"><span class="muted" id="saved">${savedAt?(dbOk?"Ответ сохранён":"Не отправлено, нажмите ещё раз"):"Выберите ответ"}</span></div>
+        <p class="muted">Следующий вопрос появится, когда его откроет преподаватель.</p></div>`;
+    return h;
+  }
+  if(submitted){
+    h+=`<div class="q"><h2>Ответ принят. Спасибо!</h2><p class="muted">Ответ отправлен преподавателю.</p>
+     <div class="row"><button class="btn" id="edit">Изменить ответ</button></div></div></div>`;
+    return h;
+  }
+  qs.forEach((q,qi)=>{h+=qHTML(q,`${qi+1}. `)});
+  const filled=qs.filter(q=>{const v=draft[q.id];return v!==undefined&&v!==""&&!(Array.isArray(v)&&!v.length)}).length;
+  h+=`<div class="row"><button class="btn primary" id="send">Отправить ответы</button><span class="muted">Заполнено ${filled} из ${qs.length}</span></div>${saveErr?`<p style="color:var(--warn)">${esc(saveErr)}</p>`:""}</div>`;
+  return h;
+}
+let sendTimer=null;
+function autoSend(){clearTimeout(sendTimer);sendTimer=setTimeout(()=>doSend(false),500)}
+async function doSend(manual){
+  const a=answers();
+  if(!Object.keys(a).length){if(manual){saveErr="Ответьте хотя бы на один вопрос.";render()}return}
+  saveErr=""; const rec={rid,a,ts:Date.now()};
+  try{await dbReq("PUT","responses/"+rid,rec);dbOk=true}catch(e){dbOk=false;saveErr="Не удалось отправить. Проверьте интернет и нажмите ещё раз."}
+  savedAt=Date.now(); lsSet("poll-draft",JSON.stringify(draft));
+  if(manual&&dbOk){submitted=rec;lsSet("poll-sub",JSON.stringify(rec));render()}
+  else if(manual)render();
+  else{const el=$("#saved");if(el)el.textContent=dbOk?"Ответ сохранён":"Не отправлено, попробуйте ещё раз"}
+}
+function keepScroll(fn){const y=window.scrollY;fn();window.scrollTo(0,y)}
+function bindForm(){
+  const app=$("#app");
+  const th=$("#toHost"); if(th)th.onclick=()=>{hostView="host";render()};
+  app.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+    const q=Q.find(x=>x.id===b.dataset.q),i=+b.dataset.i;
+    if(q.type==="multi"){
+      const cur=Array.isArray(draft[q.id])?draft[q.id].slice():[];
+      const k=cur.indexOf(i); if(k>=0)cur.splice(k,1); else{ if(q.max&&cur.length>=q.max)cur.shift(); cur.push(i)}
+      draft[q.id]=cur;
+    }else draft[q.id]=(draft[q.id]===i&&q.type==="single")?undefined:i;
+    lsSet("poll-draft",JSON.stringify(draft)); keepScroll(render);
+    if(poll.mode==="step")autoSend();
+  });
+  app.querySelectorAll("input.oth").forEach(t=>t.oninput=()=>{draft.o[t.id.slice(2)]=t.value;lsSet("poll-draft",JSON.stringify(draft));if(poll.mode==="step")autoSend()});
+  app.querySelectorAll("textarea.txt").forEach(t=>t.oninput=()=>{
+    draft[t.id.slice(2)]=t.value.trim(); lsSet("poll-draft",JSON.stringify(draft)); if(poll.mode==="step")autoSend()});
+  const s=$("#send"); if(s)s.onclick=()=>doSend(true);
+  const e=$("#edit"); if(e)e.onclick=()=>{submitted=null;lsSet("poll-sub","");render()};
+}
+
+/* ---------- экран ведущего ---------- */
+
+function barsHTML(q,A){
+  const max=Math.max(1,...A.c);
+  return optsOf(q).map((o,i)=>{
+    const pct=A.n?Math.round(A.c[i]/A.n*100):0;
+    return `<div class="brow"><div class="lab">${esc(o)}</div><div class="track"><div class="fill" style="width:${A.c[i]/max*100}%;background:${COLORS[i%5]}"></div></div><div class="num">${A.c[i]} · ${pct}%</div></div>`}).join("");
+}
+function cardHTML(q,rs){
+  const A=agg(q,rs);
+  let body="";
+  if(!A.n)body=`<div class="empty">Пока нет ответов</div>`;
+  else if(q.type==="single"||q.type==="multi"){
+    body=barsHTML(q,A);
+    if(A.others.length)body+=`<div class="muted" style="margin-top:10px">Свои варианты:</div><div class="say">`+A.others.slice(-8).reverse().map(s=>`<div>${esc(s)}</div>`).join("")+`</div>`;
+  }else if(q.type==="scale"){
+    const max=Math.max(1,...A.c);
+    body=`<div class="cols">`+A.c.map((c,i)=>`<div class="col"><div class="n">${c}</div><div class="pillar" style="height:${c/max*160}px"></div><div class="n">${i+1}</div></div>`).join("")+`</div>
+    <div class="scale-lab"><span>1 — ${esc(q.lo)}</span><span>5 — ${esc(q.hi)}</span></div><div class="avg">Среднее: <b>${A.avg.toFixed(1)}</b> из 5</div>`;
+  }else{
+    const w=words(A.list),mx=Math.max(1,...w.map(x=>x[1]));
+    body=`<div class="cloud">`+w.map(([t,c],i)=>`<span style="font-size:${(1+c/mx*2.2).toFixed(2)}rem;color:${COLORS[i%5]}">${esc(t)}</span>`).join("")+`</div>
+    <div class="say">`+A.list.slice(-8).reverse().map(s=>`<div>${esc(s)}</div>`).join("")+`</div>`;
+  }
+  return `<div class="card"><h2>${esc(q.t)}</h2>${body}<div class="muted" style="margin-top:10px">Ответили: ${A.n} из ${rs.length}</div></div>`;
+}
+
+let hostView="host";
+function renderHost(){
+  const rs=responses, qs=activeQs();
+  let h=`<div class="wrap"><div class="bar"><div><h1>Опрос семинара</h1>
+    <div class="muted">Ответы появляются на экране сами${DEMO?" · демо-режим: база не подключена":""}</div></div>
+    <div class="count"><b>${rs.length}</b><span class="muted">${rs.length===1?"ответ":"ответов"}</span></div></div>
+  <div class="bar"><span class="state"><span class="dot ${poll.open?"":"off"}"></span>${poll.open?"Приём ответов открыт":"Приём ответов закрыт"}</span>
+  <div class="row">
+    <button class="btn ${poll.open?"":"primary"}" id="tgl">${poll.open?"Закрыть приём":"Открыть приём"}</button>
+    <button class="btn ${hostMode==="step"?"on":""}" id="mOne">Ведение по одному</button>
+    <button class="btn ${hostMode==="all"?"on":""}" id="mAll">Обзор всех</button>
+    <button class="btn" id="toForm">Анкета студента</button></div></div>
+  <details class="set"><summary>Настройки: вопросы, режим, выгрузка</summary>
+   <div class="sec"><h3>Как студенты видят вопросы</h3><div class="row">
+     <button class="btn ${poll.mode==="step"?"on":""}" id="pStep">По одному, как в Menti: вопрос открываете вы</button>
+     <button class="btn ${poll.mode==="all"?"on":""}" id="pAll">Анкета целиком, сразу все вопросы</button></div></div>
+   <div class="sec"><h3>Какие вопросы показывать</h3><div class="checks">`+
+   Q.map((q,i)=>`<label><input type="checkbox" data-act="${q.id}" ${toArr(poll.active).includes(q.id)?"checked":""}><span>${i+1}. ${esc(q.t)}</span></label>`).join("")+`</div>
+   <div class="muted">Для короткого опроса хватит 4–5 вопросов. Изменения сразу видят все студенты.</div></div>
+   <div class="sec"><h3>Данные</h3><div class="row"><button class="btn" id="csv">Скачать CSV</button>
+   <button class="btn danger" id="clr">${clearAsk?"Точно удалить все ответы?":"Очистить все ответы"}</button>${clearAsk?`<button class="btn" id="clrNo">Отмена</button>`:""}</div></div>
+  </details>`;
+  if(!qs.length)h+=`<div class="notice">Выберите вопросы в настройках.</div>`;
+  else if(hostMode==="all")h+=`<div class="grid">`+qs.map(q=>cardHTML(q,rs)).join("")+`</div>`;
+  else{
+    const q=curQ(), idx=qs.indexOf(q);
+    h+=`<div class="one">${cardHTML(q,rs)}</div><div class="nav"><button class="btn" id="prev" ${idx?"":"disabled"}>← Назад</button><span class="muted">Студенты видят вопрос ${idx+1} из ${qs.length}</span><button class="btn primary" id="next" ${idx<qs.length-1?"":"disabled"}>Следующий вопрос →</button></div>`;
+    if(poll.mode==="all")h+=`<p class="muted" style="text-align:center">Сейчас включена анкета целиком: студенты видят все вопросы сразу.</p>`;
+  }
+  return h+`</div>`;
+}
+function bindHost(){
+  const on=(id,fn)=>{const e=$(id);if(e)e.onclick=fn};
+  const qs=activeQs();
+  on("#toForm",()=>{hostView="form";render()});
+  on("#mAll",()=>{hostMode="all";render()});
+  on("#mOne",()=>{hostMode="step";render()});
+  on("#prev",()=>{const i=qs.indexOf(curQ());savePoll({cur:qs[Math.max(0,i-1)].id})});
+  on("#next",()=>{const i=qs.indexOf(curQ());savePoll({cur:qs[Math.min(qs.length-1,i+1)].id})});
+  on("#tgl",()=>savePoll({open:!poll.open}));
+  on("#pStep",()=>savePoll({mode:"step"})); on("#pAll",()=>savePoll({mode:"all"}));
+  document.querySelectorAll("input[data-act]").forEach(c=>c.onchange=()=>{
+    const set=new Set(toArr(poll.active)); c.checked?set.add(c.dataset.act):set.delete(c.dataset.act);
+    const active=Q.map(q=>q.id).filter(id=>set.has(id));
+    savePoll({active,cur:active.includes(poll.cur)?poll.cur:active[0]});
+  });
+  on("#csv",exportCsv);
+  on("#clr",async()=>{
+    if(!clearAsk){clearAsk=true;render();return}
+    clearAsk=false; try{await dbReq("DELETE","responses")}catch(e){}
+    responses=[];respSig=""; render();
+  });
+  on("#clrNo",()=>{clearAsk=false;render()});
+}
+async function savePoll(patch){
+  poll={...poll,...patch,active:toArr(patch.active||poll.active)}; pollSig=JSON.stringify(poll); render();
+  try{await dbReq("PUT","poll",poll)}catch(e){}
+}
+function exportCsv(){
+  const cell=v=>'"'+String(v??"").replace(/"/g,'""')+'"';
+  const head=["№",...Q.map(q=>q.t)];
+  const rows=responses.map((r,i)=>[i+1,...Q.map(q=>{
+    const v=r.a[q.id]; if(v===undefined)return "";
+    const lab=j=>j===q.opts.length?(OTHER+(r.a.o&&r.a.o[q.id]?": "+r.a.o[q.id]:"")):q.opts[j];
+    if(q.type==="single")return lab(v); if(q.type==="multi")return v.map(lab).join("; "); return v})]);
+  const csv="﻿"+[head,...rows].map(r=>r.map(cell).join(",")).join("\r\n");
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
+  a.download="otvety-oprosa.csv"; document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* ---------- вход ведущего ---------- */
+function renderLogin(msg){
+  return `<div class="narrow"><div class="head"><h1>Вход ведущего</h1><div class="muted">Введите почту и пароль, которые вы создали в Firebase.</div></div>
+   <div class="q"><label for="em">Почта</label><br><input class="oth" style="margin-top:6px" id="em" type="email" value="${esc(CFG.hostEmail||"")}" autocomplete="username">
+   <br><br><label for="pw">Пароль</label><br><input class="oth" style="margin-top:6px" id="pw" type="password" autocomplete="current-password">
+   ${msg?`<p style="color:var(--warn)">${esc(msg)}</p>`:""}
+   <div class="row" style="margin-top:14px"><button class="btn primary" id="login">Войти</button></div></div></div>`;
+}
+
+/* ---------- запуск ---------- */
+function render(){
+  const app=$("#app");
+  const ae=document.activeElement;
+  if(ae&&ae.classList&&(ae.classList.contains("txt")||ae.classList.contains("oth")))return;
+  const d=document.querySelector("details.set"), wasOpen=d&&d.open;
+  if(isHost&&hostView==="host"&&poll){app.innerHTML=renderHost();bindHost();
+    const d2=document.querySelector("details.set"); if(d2&&(wasOpen||clearAsk))d2.open=true}
+  else{app.innerHTML=renderForm();bindForm()}
+}
+const DEFAULT_POLL=()=>({open:true,mode:"step",cur:DEFAULT_ACTIVE[0],active:DEFAULT_ACTIVE.slice()});
+async function pullPoll(){
+  try{
+    const p=await dbReq("GET","poll"); const sig=JSON.stringify(p);
+    if(sig===pollSig)return; pollSig=sig;
+    poll=p?{open:p.open!==false,mode:p.mode==="all"?"all":"step",cur:p.cur||DEFAULT_ACTIVE[0],active:toArr(p.active)}:null;
+    render();
+  }catch(e){}
+}
+async function pullResponses(){
+  try{
+    const r=await dbReq("GET","responses"); const sig=JSON.stringify(r);
+    if(sig===respSig)return; respSig=sig;
+    responses=Object.values(r||{}).filter(x=>x&&x.a).map(normResp); render();
+  }catch(e){}
+}
+async function start(){
+  if(IS_HOST_URL){
+    if(DEMO)isHost=true;
+    else{
+      $("#app").innerHTML=renderLogin();
+      await new Promise(res=>{
+        const go=async()=>{try{await hostLogin($("#em").value.trim(),$("#pw").value);isHost=true;res()}catch(e){$("#app").innerHTML=renderLogin("Не удалось войти: проверьте почту и пароль.");$("#login").onclick=go}};
+        $("#login").onclick=go; $("#pw").onkeydown=e=>{if(e.key==="Enter")go()};
+      });
+    }
+    await pullPoll();
+    if(!poll){poll=DEFAULT_POLL();pollSig=JSON.stringify(poll);try{await dbReq("PUT","poll",poll)}catch(e){}}
+    await pullResponses(); render();
+    setInterval(pullResponses,2000);          // новые ответы каждые 2 секунды
+  }else{
+    await pullPoll(); render();
+    setInterval(pullPoll,2000);               // вопрос и состояние приёма каждые 2 секунды
+  }
+}
+render(); start();
+</script></body></html>
